@@ -3,7 +3,7 @@ import asyncio
 from db import new_session
 from models import Category
 from services.gpc_client import GPCClient
-from sqlalchemy import insert
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 
 async def fetch_categories() -> list:
@@ -12,9 +12,10 @@ async def fetch_categories() -> list:
     segments_task = client.fetch("segment")
     families_task = client.fetch("family")
     classes_task = client.fetch("class")
+    bricks_task = client.fetch("brick")
 
-    segments, families, classes = await asyncio.gather(
-        segments_task, families_task, classes_task
+    segments, families, classes, bricks = await asyncio.gather(
+        segments_task, families_task, classes_task, bricks_task
     )
 
     def normalize(items: list) -> list:
@@ -31,7 +32,8 @@ async def fetch_categories() -> list:
     result = (
             normalize(segments) +
             normalize(families) +
-            normalize(classes)
+            normalize(classes) +
+            normalize(bricks)
     )
 
     return result
@@ -39,5 +41,15 @@ async def fetch_categories() -> list:
 
 async def save_categories(categories: list):
     async with new_session() as session:
-        await session.execute(insert(Category), categories)
+        stmt = pg_insert(Category).values(categories)
+        update_stmt = stmt.on_conflict_do_update(
+            index_elements=["id"],
+            set_={
+                c.name: getattr(stmt.excluded, c.name)
+                for c in Category.__table__.columns
+                if c.name != "id"
+            }
+        )
+
+        await session.execute(update_stmt)
         await session.commit()
