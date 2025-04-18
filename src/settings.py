@@ -26,8 +26,16 @@ class DatabaseSettings(BaseSettings):
         env_prefix = "db_"
 
 
+class GS1RUSettings(BaseSettings):
+    captcha_token: SecretStr
+
+    class Config:
+        env_prefix = "gs1_"
+
+
 class Settings(BaseSettings):
     db: DatabaseSettings = DatabaseSettings()
+    gs1: GS1RUSettings = GS1RUSettings()
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     debug: bool = False
