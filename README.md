@@ -9,5 +9,6 @@
 
 1. Install dependencies via `uv sync`
 2. Spin up the database via `docker-compose up -d`
-3. Run the server via `uv run src/main.py`
-4. Parse categories via `uv run src/cli.py`
+3. Copy `.env.example` to `.env` and fill in the values
+4. Run the server via `uv run src/main.py`
+5. Parse categories via `uv run src/cli.py`
