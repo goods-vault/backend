@@ -6,6 +6,7 @@ import uvicorn
 from db import create_tables
 from exceptions import ProductNotExists
 from fastapi import FastAPI, HTTPException
+from models.schemas import Product, AppStatus, HTTPError
 from pydantic import AfterValidator
 from services.gs1ru_client import GS1RUClient
 from settings import settings
@@ -22,19 +23,21 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.get("/api/health")
-async def get_health():
-    return {
+async def get_health() -> AppStatus:
+    return AppStatus(**{
         "status": "healthy",
-        "timestamp": datetime.now().isoformat(),
-    }
+        "timestamp": datetime.now(),
+    })
 
 
-@app.get("/api/product")
-async def get_product(code: Annotated[str, AfterValidator(check_valid_code)]):
+@app.get("/api/product", responses={404: {"model": HTTPError}})
+async def get_product(code: Annotated[str, AfterValidator(check_valid_code)]) -> Product:
     client = GS1RUClient()
 
     try:
-        return await client.get_product(code)
+        product = await client.get_product(code)
+        return Product(**product)
+
     except ProductNotExists:
         raise HTTPException(
             status_code=404,

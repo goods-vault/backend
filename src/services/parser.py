@@ -1,7 +1,7 @@
 import asyncio
 
 from db import new_session
-from models import Category
+from models.orm import Category
 from services.gpc_client import GPCClient
 from sqlalchemy import insert
 
