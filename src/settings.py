@@ -1,3 +1,4 @@
+from pydantic import SecretStr, computed_field
 from pydantic_settings import BaseSettings as PydanticBaseSettings
 
 
@@ -7,7 +8,26 @@ class BaseSettings(PydanticBaseSettings):
         extra = "ignore"
 
 
+class DatabaseSettings(BaseSettings):
+    user: str = "goods_vault"
+    password: SecretStr = "goods_vault"
+    host: str = "localhost"
+    port: int = 5432
+    name: str = "goods_vault"
+
+    @computed_field
+    @property
+    def url(self) -> str:
+        return (f"postgresql+asyncpg://"
+                f"{self.user}:{self.password.get_secret_value()}"
+                f"@{self.host}:{self.port}/{self.name}")
+
+    class Config:
+        env_prefix = "db_"
+
+
 class Settings(BaseSettings):
+    db: DatabaseSettings = DatabaseSettings()
     api_host: str = "0.0.0.0"
     api_port: int = 8000
     debug: bool = False
