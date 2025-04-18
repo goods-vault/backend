@@ -9,3 +9,4 @@
 
 1. Install dependencies via `uv sync`
 2. Run the server via `uv run src/main.py`
+3. Parse categories via `uv run src/cli.py`

@@ -1,6 +1,9 @@
 import asyncio
 
+from db import new_session
+from models import Category
 from services.gpc_client import GPCClient
+from sqlalchemy import insert
 
 
 async def fetch_categories() -> list:
@@ -32,3 +35,9 @@ async def fetch_categories() -> list:
     )
 
     return result
+
+
+async def save_categories(categories: list):
+    async with new_session() as session:
+        await session.execute(insert(Category), categories)
+        await session.commit()

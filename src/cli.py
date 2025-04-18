@@ -1,7 +1,7 @@
 import asyncio
 
 import typer
-from services.parser import fetch_categories
+from services.parser import fetch_categories, save_categories
 
 cli = typer.Typer()
 
@@ -12,8 +12,7 @@ def load_categories():
     Парсит категории и сохраняет их в базу данных.
     """
     result = asyncio.run(fetch_categories())
-    # TODO: write categories to db
-    print(result)
+    asyncio.run(save_categories(result))
 
 
 if __name__ == "__main__":
