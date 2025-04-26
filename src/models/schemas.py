@@ -24,6 +24,12 @@ class Product(BaseModel):
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
 
+class Category(BaseModel):
+    id: int
+    title: str
+    children: list["Category"] = Field(default_factory=list)
+
+
 class AppStatus(BaseModel):
     status: Literal["healthy"]
     timestamp: datetime

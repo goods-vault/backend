@@ -37,6 +37,9 @@ class Category(Base):
     parent: Mapped[Optional["Category"]] = relationship(back_populates="children", remote_side="Category.id")
     children: Mapped[list["Category"]] = relationship(back_populates="parent")
 
+    def __repr__(self):
+        return f"<Category(id={self.id}, parent_id={self.parent_id}, title={self.title})>"
+
 
 class Product(Base, CreatedAtMixin, UpdatedAtMixin):
     __tablename__ = "products"

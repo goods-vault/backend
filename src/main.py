@@ -9,8 +9,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db import create_tables, get_db
 from exceptions import ProductNotExists
-from models.schemas import Product as ProductSchema, AppStatus, HTTPError
-from models.utils.product import get_product_by_gtin, create_product, get_unique_brands
+from models.schemas import Product as ProductSchema, AppStatus, HTTPError, Category
+from models.utils.product import (get_product_by_gtin, create_product, get_used_unique_brands,
+                                  get_used_categories, get_used_categories_from_root, build_used_categories_tree)
 from services.gs1ru_client import GS1RUClient
 from settings import settings
 from utils import ean2gtin
@@ -65,7 +66,14 @@ async def get_product(
 
 @app.get("/api/brands")
 async def get_brands(db: AsyncSession = Depends(get_db)) -> list[str]:
-    return await get_unique_brands(db)
+    return await get_used_unique_brands(db)
+
+
+@app.get("/api/categories", response_model=list[Category])
+async def get_categories(db: AsyncSession = Depends(get_db)):
+    used_categories = await get_used_categories(db)
+    used_categories = get_used_categories_from_root(used_categories)
+    return build_used_categories_tree(used_categories)
 
 
 if __name__ == "__main__":
