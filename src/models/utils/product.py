@@ -1,6 +1,4 @@
-from typing import cast
-
-from sqlalchemy import select, distinct
+from sqlalchemy import select, distinct, asc
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -31,13 +29,12 @@ async def get_product_by_gtin(db: AsyncSession, gtin: str) -> ProductORM | None:
     return result.scalars().first()
 
 
-async def get_used_unique_brands(db: AsyncSession) -> list[str]:
+async def get_used_unique_brands(db: AsyncSession) -> set[str | None]:
     result = await db.execute(
         select(distinct(ProductORM.brand))
-        .where(ProductORM.brand != None)
-        .order_by(ProductORM.brand)
+        .order_by(asc(ProductORM.brand).nulls_last())
     )
-    return cast(list[str], result.scalars().all())
+    return result.scalars().all()
 
 
 async def get_used_categories(db: AsyncSession) -> list[CategoryORM]:

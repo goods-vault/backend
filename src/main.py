@@ -65,7 +65,7 @@ async def get_product(
 
 
 @app.get("/api/brands")
-async def get_brands(db: AsyncSession = Depends(get_db)) -> list[str]:
+async def get_brands(db: AsyncSession = Depends(get_db)) -> set[str | None]:
     return await get_used_unique_brands(db)
 
 
