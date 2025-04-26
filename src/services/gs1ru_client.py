@@ -1,5 +1,8 @@
 import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from exceptions import ProductNotExists
+from models.utils.category import get_category_by_id
 from settings import settings
 from utils import get_head
 
@@ -11,9 +14,10 @@ HEADERS = {
 
 
 class GS1RUClient:
-    def __init__(self):
+    def __init__(self, db: AsyncSession):
         self.url = URL
         self.headers = HEADERS
+        self.db = db
 
     async def get_product(self, code: str):
         async with httpx.AsyncClient(headers=self.headers) as client:
@@ -27,6 +31,7 @@ class GS1RUClient:
             raise ProductNotExists()
 
         image = get_head(response, "productImageUrl")
+        category_id = get_head(response, "gpcCategory", "code", "").lstrip("GPCCLBRK_")
         return {
             "gtin": get_head(response, "gtin"),
             "brand": get_head(response, "brandName"),
@@ -36,6 +41,6 @@ class GS1RUClient:
                 "unit": get_head(response, "netContent", "unitCode"),
                 "value": get_head(response, "netContent"),
             },
-            "category": get_head(response, "gpcCategory", "code", "").lstrip("GPCCLBRK_"),
+            "category": (await get_category_by_id(self.db, int(category_id))).title,
             "updated_at": get_head(response, "licenseInfo", "dateUpdated"),
         }

@@ -3,11 +3,13 @@ from datetime import datetime
 from typing import Annotated
 
 import uvicorn
-from db import create_tables
-from exceptions import ProductNotExists
-from fastapi import FastAPI, HTTPException
-from models.schemas import Product, AppStatus, HTTPError
+from fastapi import FastAPI, HTTPException, Depends
 from pydantic import AfterValidator
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from db import create_tables, get_db
+from exceptions import ProductNotExists
+from models.schemas import Product, AppStatus, HTTPError
 from services.gs1ru_client import GS1RUClient
 from settings import settings
 from validators import check_valid_code
@@ -31,8 +33,11 @@ async def get_health() -> AppStatus:
 
 
 @app.get("/api/product", responses={404: {"model": HTTPError}})
-async def get_product(code: Annotated[str, AfterValidator(check_valid_code)]) -> Product:
-    client = GS1RUClient()
+async def get_product(
+        code: Annotated[str, AfterValidator(check_valid_code)],
+        db: AsyncSession = Depends(get_db),
+) -> Product:
+    client = GS1RUClient(db)
 
     try:
         product = await client.get_product(code)
@@ -41,7 +46,7 @@ async def get_product(code: Annotated[str, AfterValidator(check_valid_code)]) ->
     except ProductNotExists:
         raise HTTPException(
             status_code=404,
-            detail="This product does not exist in the GS1 database"
+            detail="This product does not exist in the GS1 database",
         )
 
 
