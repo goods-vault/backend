@@ -1,22 +1,33 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl, Field, ConfigDict
 
 
 class NetContent(BaseModel):
-    unit: str
-    value: int
+    unit: str | None
+    value: float | None
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class Product(BaseModel):
     gtin: str
-    brand: str
+    brand: str | None
     title: str
-    image: str | None
+    image: HttpUrl | None
     net_content: NetContent
-    category: str
-    updated_at: datetime
+    category_id: int
+    category: str = Field(..., alias="category_title")
+    updated_at: datetime = Field(..., alias="updated_in_gs1_at")
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+
+class Category(BaseModel):
+    id: int
+    title: str
+    children: list["Category"] = Field(default_factory=list)
 
 
 class AppStatus(BaseModel):
