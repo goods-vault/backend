@@ -55,7 +55,12 @@ def get_used_categories_from_root(used_categories: list[CategoryORM]) -> set[Cat
     categories = set()
 
     for category in used_categories:
-        categories.update([category.parent, category.parent.parent, category.parent.parent.parent])
+        for level in range(3):
+            if category.parent_id:
+                category = category.parent
+                categories.add(category)
+            else:
+                break
 
     return categories
 
