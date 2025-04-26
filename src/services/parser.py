@@ -2,7 +2,7 @@ import asyncio
 
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-from db import get_db
+from db import async_session
 from models.orm import Category
 from services.gpc_client import GPCClient
 
@@ -41,7 +41,7 @@ async def fetch_categories() -> list:
 
 
 async def save_categories(categories: list):
-    async for db in get_db():
+    async with async_session() as db:
         stmt = pg_insert(Category).values(categories)
         update_stmt = stmt.on_conflict_do_update(
             index_elements=["id"],
