@@ -1,19 +1,19 @@
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 
 
 class NetContent(BaseModel):
-    unit: str
-    value: int
+    unit: str | None
+    value: float | None
 
 
 class Product(BaseModel):
     gtin: str
-    brand: str
+    brand: str | None
     title: str
-    image: str | None
+    image: HttpUrl | None
     net_content: NetContent
     category: str
     updated_at: datetime
