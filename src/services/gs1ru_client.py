@@ -31,7 +31,7 @@ class GS1RUClient:
             raise ProductNotExists()
 
         image = get_head(response, "productImageUrl")
-        category_id = get_head(response, "gpcCategory", "code", "").lstrip("GPCCLBRK_")
+        category_id = get_head(response, "gpcCategory", "code", "").split("_")[1]
         return {
             "gtin": get_head(response, "gtin"),
             "brand": get_head(response, "brandName"),
