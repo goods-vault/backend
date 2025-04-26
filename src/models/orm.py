@@ -48,6 +48,17 @@ class Product(Base, CreatedAtMixin, UpdatedAtMixin):
     net_content_unit: Mapped[str | None]
     net_content_value: Mapped[float | None]
     category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
-    updated_in_gs1_at: Mapped[datetime]
+    updated_in_gs1_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
-    category: Mapped["Category"] = relationship(backref="products")
+    category: Mapped["Category"] = relationship(backref="products", lazy="joined")
+
+    @property
+    def net_content(self) -> dict:
+        return {
+            "unit": self.net_content_unit,
+            "value": self.net_content_value,
+        }
+
+    @property
+    def category_title(self) -> str:
+        return self.category.title

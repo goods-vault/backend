@@ -41,6 +41,7 @@ class GS1RUClient:
                 "unit": get_head(response, "netContent", "unitCode"),
                 "value": get_head(response, "netContent"),
             },
+            "category_id": category_id,
             "category": (await get_category_by_id(self.db, int(category_id))).title,
             "updated_at": get_head(response, "licenseInfo", "dateUpdated"),
         }
