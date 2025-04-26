@@ -10,7 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db import create_tables, get_db
 from exceptions import ProductNotExists
 from models.schemas import Product as ProductSchema, AppStatus, HTTPError
-from models.utils.product import get_product_by_gtin, create_product
+from models.utils.product import get_product_by_gtin, create_product, get_unique_brands
 from services.gs1ru_client import GS1RUClient
 from settings import settings
 from utils import ean2gtin
@@ -61,6 +61,11 @@ async def get_product(
             status_code=404,
             detail="This product does not exist in the GS1 database",
         )
+
+
+@app.get("/api/brands")
+async def get_brands(db: AsyncSession = Depends(get_db)) -> list[str]:
+    return await get_unique_brands(db)
 
 
 if __name__ == "__main__":

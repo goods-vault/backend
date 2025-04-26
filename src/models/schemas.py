@@ -23,6 +23,7 @@ class Product(BaseModel):
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
+
 class AppStatus(BaseModel):
     status: Literal["healthy"]
     timestamp: datetime
