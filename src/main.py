@@ -1,4 +1,4 @@
-from contextlib import asynccontextmanager
+from datetime import datetime
 from datetime import datetime
 from typing import Annotated
 
@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException, Depends
 from pydantic import AfterValidator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db import create_tables, get_db
+from db import get_db
 from exceptions import ProductNotExists, InvalidCaptchaToken
 from models.schemas import Product as ProductSchema, AppStatus, HTTPError, Category
 from models.utils.product import (get_product_by_gtin, create_product, get_used_unique_brands,
@@ -17,14 +17,7 @@ from settings import settings
 from utils import ean2gtin
 from validators import check_valid_code
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await create_tables()
-    yield
-
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 
 
 @app.get("/api/health")
