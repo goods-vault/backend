@@ -1,4 +1,3 @@
-from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Annotated
 
@@ -7,8 +6,9 @@ from fastapi import FastAPI, HTTPException, Depends
 from pydantic import AfterValidator
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db import create_tables, get_db
-from exceptions import ProductNotExists
+from db import get_db
+from exceptions import ProductNotExists, InvalidCaptchaToken
+from logging_config import configure_logging
 from models.schemas import Product as ProductSchema, AppStatus, HTTPError, Category
 from models.utils.product import (get_product_by_gtin, create_product, get_used_unique_brands,
                                   get_used_categories, get_used_categories_from_root, build_used_categories_tree)
@@ -17,14 +17,8 @@ from settings import settings
 from utils import ean2gtin
 from validators import check_valid_code
 
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    await create_tables()
-    yield
-
-
-app = FastAPI(lifespan=lifespan)
+configure_logging()
+app = FastAPI()
 
 
 @app.get("/api/health")
@@ -39,7 +33,10 @@ async def get_health() -> AppStatus:
     "/api/product",
     response_model=ProductSchema,
     response_model_by_alias=False,
-    responses={404: {"model": HTTPError}},
+    responses={
+        403: {"model": HTTPError},
+        404: {"model": HTTPError},
+    },
 )
 async def get_product(
         code: Annotated[str, AfterValidator(check_valid_code)],
@@ -60,7 +57,15 @@ async def get_product(
     except ProductNotExists:
         raise HTTPException(
             status_code=404,
-            detail="This product does not exist in the GS1 database",
+            detail="This product does not exist in the GS1 database.",
+        )
+
+    except InvalidCaptchaToken:
+        raise HTTPException(
+            status_code=403,
+            detail="Invalid or expired captcha token. "
+                   "It must be replaced on the backend. "
+                   "Notice that the token is valid for 24 hours.",
         )
 
 
