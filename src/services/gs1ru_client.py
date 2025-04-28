@@ -1,7 +1,7 @@
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from exceptions import ProductNotExists
+from exceptions import ProductNotExists, InvalidCaptchaToken
 from models.utils.category import get_category_by_id
 from settings import settings
 from utils import get_head
@@ -22,26 +22,29 @@ class GS1RUClient:
     async def get_product(self, code: str):
         async with httpx.AsyncClient(headers=self.headers, timeout=settings.gs1.request_timeout) as client:
             response = await client.post(self.url, json={"gtin": code})
-            response.raise_for_status()
-            response = response.json()
-            if settings.debug:
-                print(f"Response for code {code}:", response)
+            data = response.json()
+            if response.status_code == 403 and data.get("message") == "Неверный результат проверки Captcha":
+                raise InvalidCaptchaToken()
 
-        if response["noInfo"]:
+            response.raise_for_status()
+            if settings.debug:
+                print(f"Response for code {code}:", data)
+
+        if data["noInfo"]:
             raise ProductNotExists()
 
-        image = get_head(response, "productImageUrl")
-        category_id = get_head(response, "gpcCategory", "code", "").split("_")[1]
+        image = get_head(data, "productImageUrl")
+        category_id = get_head(data, "gpcCategory", "code", "").split("_")[1]
         return {
-            "gtin": get_head(response, "gtin"),
-            "brand": get_head(response, "brandName"),
-            "title": get_head(response, "productDescription", default="").capitalize(),
+            "gtin": get_head(data, "gtin"),
+            "brand": get_head(data, "brandName"),
+            "title": get_head(data, "productDescription", default="").capitalize(),
             "image": None if image in ["Маркировка", "/images/placeholder.png"] else image,
             "net_content": {
-                "unit": get_head(response, "netContent", "unitCode"),
-                "value": get_head(response, "netContent"),
+                "unit": get_head(data, "netContent", "unitCode"),
+                "value": get_head(data, "netContent"),
             },
             "category_id": category_id,
             "category": (await get_category_by_id(self.db, int(category_id))).title,
-            "updated_at": get_head(response, "licenseInfo", "dateUpdated"),
+            "updated_at": get_head(data, "licenseInfo", "dateUpdated"),
         }
