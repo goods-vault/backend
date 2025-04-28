@@ -20,7 +20,7 @@ class GS1RUClient:
         self.db = db
 
     async def get_product(self, code: str):
-        async with httpx.AsyncClient(headers=self.headers) as client:
+        async with httpx.AsyncClient(headers=self.headers, timeout=settings.gs1.request_timeout) as client:
             response = await client.post(self.url, json={"gtin": code})
             response.raise_for_status()
             response = response.json()

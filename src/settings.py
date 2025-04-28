@@ -28,6 +28,7 @@ class DatabaseSettings(BaseSettings):
 
 class GS1RUSettings(BaseSettings):
     captcha_token: SecretStr
+    request_timeout: float = 15.0
 
     class Config:
         env_prefix = "gs1_"
@@ -36,8 +37,10 @@ class GS1RUSettings(BaseSettings):
 class Settings(BaseSettings):
     db: DatabaseSettings = DatabaseSettings()
     gs1: GS1RUSettings = GS1RUSettings()
+
     api_host: str = "0.0.0.0"
     api_port: int = 8000
+
     debug: bool = False
 
 
