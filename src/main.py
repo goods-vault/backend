@@ -1,5 +1,4 @@
 from datetime import datetime
-from datetime import datetime
 from typing import Annotated
 
 import uvicorn
@@ -9,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from db import get_db
 from exceptions import ProductNotExists, InvalidCaptchaToken
+from logging_config import configure_logging
 from models.schemas import Product as ProductSchema, AppStatus, HTTPError, Category
 from models.utils.product import (get_product_by_gtin, create_product, get_used_unique_brands,
                                   get_used_categories, get_used_categories_from_root, build_used_categories_tree)
@@ -17,6 +17,7 @@ from settings import settings
 from utils import ean2gtin
 from validators import check_valid_code
 
+configure_logging()
 app = FastAPI()
 
 

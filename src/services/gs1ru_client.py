@@ -1,3 +1,5 @@
+import logging
+
 import httpx
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -11,6 +13,8 @@ HEADERS = {
     "content-type": "application/json",
     "cookie": f"captcha_token={settings.gs1.captcha_token.get_secret_value()}",
 }
+
+logger = logging.getLogger(__name__)
 
 
 class GS1RUClient:
@@ -27,8 +31,7 @@ class GS1RUClient:
                 raise InvalidCaptchaToken()
 
             response.raise_for_status()
-            if settings.debug:
-                print(f"Response for code {code}:", data)
+            logger.debug("Response for code %s: %s", code, data)
 
         if data["noInfo"]:
             raise ProductNotExists()
