@@ -50,7 +50,7 @@ class Product(Base, CreatedAtMixin, UpdatedAtMixin):
     image: Mapped[str | None]
     net_content_unit: Mapped[str | None]
     net_content_value: Mapped[float | None]
-    category_id: Mapped[int] = mapped_column(ForeignKey("categories.id"))
+    category_id: Mapped[int | None] = mapped_column(ForeignKey("categories.id"))
     updated_in_gs1_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
 
     category: Mapped["Category"] = relationship(backref="products", lazy="joined")

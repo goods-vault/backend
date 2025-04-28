@@ -34,17 +34,23 @@ class GS1RUClient:
             raise ProductNotExists()
 
         image = get_head(data, "productImageUrl")
-        category_id = get_head(data, "gpcCategory", "code", "").split("_")[1]
+        net_content_unit = get_head(data, "netContent", "unitCode")
+        category_id = get_head(data, "gpcCategory", "code")
+        category = None
+        if category_id:
+            category_id = category_id.split("_")[1]
+            category = (await get_category_by_id(self.db, int(category_id))).title
+
         return {
             "gtin": get_head(data, "gtin"),
             "brand": get_head(data, "brandName"),
             "title": get_head(data, "productDescription", default="").capitalize(),
             "image": None if image in ["Маркировка", "/images/placeholder.png"] else image,
             "net_content": {
-                "unit": get_head(data, "netContent", "unitCode"),
+                "unit": net_content_unit.lower() if net_content_unit else None,
                 "value": get_head(data, "netContent"),
             },
             "category_id": category_id,
-            "category": (await get_category_by_id(self.db, int(category_id))).title,
+            "category": category,
             "updated_at": get_head(data, "licenseInfo", "dateUpdated"),
         }

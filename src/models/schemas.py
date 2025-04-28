@@ -17,8 +17,8 @@ class Product(BaseModel):
     title: str
     image: HttpUrl | None
     net_content: NetContent
-    category_id: int
-    category: str = Field(..., alias="category_title")
+    category_id: int | None
+    category: str | None = Field(..., alias="category_title")
     updated_at: datetime = Field(..., alias="updated_in_gs1_at")
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
